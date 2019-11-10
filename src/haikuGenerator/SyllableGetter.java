@@ -1,5 +1,12 @@
 package haikuGenerator;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * This class acts as an object which will reference external sources (i.e.
  * known web sites) in the goal of obtaining the number of syllables contained
@@ -42,8 +49,9 @@ public class SyllableGetter {
 	 * 
 	 * @param token
 	 * @return syllableCount
+	 * @throws IOException 
 	 */
-	public int getSyllables(String token) {
+	public int getSyllables(String token) throws IOException {
 		switch (language) {
 		// if the current language is English, it will call to a sub-
 		// method which will delegate the process of getting syllables
@@ -66,9 +74,20 @@ public class SyllableGetter {
 	 * 
 	 * @param token
 	 * @return syllableCount
+	 * @throws IOException 
 	 */
-	private int getEnglishSyllables(String token) {
-		return 0;
+	private int getEnglishSyllables(String token) throws IOException {
+		URL site = new URL(String.valueOf("https://writerlywords.com/syllables/" + token));
+		HttpsURLConnection con = (HttpsURLConnection) site.openConnection();
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		
+		String line = "";
+		while (!line.contains("<p id=\"ctl00_ContentPane_paragraphtext\" style=\"font-size: x-large\">Syllables in " + token.toUpperCase() + ":")) {
+			line = in.readLine();
+		}
+		
+		String[] arr = line.split("\\s");
+		return Integer.parseInt(arr[14]);
 	}
 
 	/**

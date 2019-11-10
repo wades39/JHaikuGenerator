@@ -1,6 +1,8 @@
 package haikuGenerator;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 /**
  * This class is a HashSet<Word> which allows external classes to quickly and
@@ -16,27 +18,24 @@ import java.util.HashSet;
  * @author Kyler McMullin
  *
  */
-public class WordSet {
+public class WordSet extends HashMap<Word, String> {
 
 	/**
-	 * The set which houses the words.
+	 * Java was yelling at me to add this
 	 */
-	private HashSet<Word> wordSet;
+	private static final long serialVersionUID = 5905309584989230807L;
 
-	/**
-	 * Represents a set of word objects.
-	 */
-	public WordSet() {
-		wordSet = new HashSet<Word>();
+	public Word getRandom() {
+		return (Word) this.keySet().toArray()[(int)(Math.random()*this.keySet().size())];
 	}
-
-	/**
-	 * Adds a word to the set.
-	 * 
-	 * @param word
-	 */
-	public void add(Word word) {
-		wordSet.add(word);
+	
+	public Word get(String token) {
+		ArrayList<Word> words = new ArrayList<Word>(this.keySet());
+		for (int i = 0; i < words.size(); i++) {
+			if (words.get(i).toString().equals(token)) {
+				return words.get(i);
+			}
+		}
+		throw new NoSuchElementException(token);
 	}
-
 }

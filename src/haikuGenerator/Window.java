@@ -8,14 +8,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.UIManager;
@@ -71,13 +76,21 @@ public class Window extends javax.swing.JFrame {
 	 */
 	private String language;
 	/**
-	 * Used to build the poem string
-	 */
-	private StringBuilder sb;
-	/**
 	 * References the Reader class
 	 */
 	private Reader reader;
+	/**
+	 * References the Generator class
+	 */
+	private Generator gen;
+	/**
+	 * Allows the user to select the type of generation they wish to use
+	 */
+	private JComboBox<String> genType;
+	/**
+	 * Allows the user to dictate whether or not the generation will be continuous
+	 */
+	private JRadioButton isCont;
 	/**
 	 * Used to write to the log file
 	 */
@@ -111,7 +124,7 @@ public class Window extends javax.swing.JFrame {
 		}
 
 		// creates a new gui
-		Window gui = new Window();
+		new Window();
 
 		// TODO: Implement code to write to the error log
 
@@ -148,7 +161,8 @@ public class Window extends javax.swing.JFrame {
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setTitle("JHaikuGenerator");
 		this.setLayout(null);
-		this.setResizable(false);;
+		this.setResizable(false);
+		;
 		// TODO: Design an icon for the program
 		// TODO: Implement code to establish the icon of the program
 
@@ -182,12 +196,33 @@ public class Window extends javax.swing.JFrame {
 		lang.setBounds(x, y, 140, 20);
 		x += 145;
 
-		// Instantiates and assigns a button that, when pressed, will begin the 
+		// Instantiates and assigns a drop down menu from which the user can select the
+		// type of generation they wish to employ
+		genType = new JComboBox<String>();
+		genType.addItem("Most Frequent");
+		genType.addItem("Median");
+		genType.addItem("Least Frequent");
+		genType.addItem("Random");
+		genType.setSelectedIndex(0);
+		genType.setBounds(x, y, 140, 20);
+		x = 15;
+		y += 25;
+
+		// Instantiates and assigns a radio button that allows the user to dictate
+		// whether or not they wish to generate continuous text (I.E. all words have a
+		// parent)
+		isCont = new JRadioButton();
+		isCont.setText("Generate continously?");
+		isCont.setSelected(false);
+		isCont.setBounds(x, y, 285, 20);
+		y += 25;
+
+		// Instantiates and assigns a button that, when pressed, will begin the
 		// process of reading and analyzing the source file, then instantiating the
 		// process of generating a new, random haiku from the file
 		generate = new JButton();
 		generate.setText("Generate");
-		generate.setBounds(x, y, 140, 20);
+		generate.setBounds(x, y, 285, 20);
 		x = 15;
 		y += 25;
 
@@ -242,9 +277,9 @@ public class Window extends javax.swing.JFrame {
 					languageChanged(supported[lang.getSelectedIndex()]);
 				}
 			}
-			
+
 		});
-		
+
 		// adds the components to the GUI window
 		cp.add(browse);
 		cp.add(fileLoc);
@@ -252,7 +287,9 @@ public class Window extends javax.swing.JFrame {
 		cp.add(lang);
 		cp.add(progress);
 		cp.add(result);
-		
+		cp.add(isCont);
+		cp.add(genType);
+
 		// sets the window size to appropriately display all of the components
 		cp.setPreferredSize(new Dimension(widest, deepest));
 
@@ -278,7 +315,11 @@ public class Window extends javax.swing.JFrame {
 	 * clicked
 	 */
 	private void browseClicked() {
-		// TODO: Implement a JFileChooser dialog box, such that the source file can be retrieved
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fileChooser.showOpenDialog(this);
+		source = fileChooser.getSelectedFile();
+		fileLoc.setText(source.getAbsolutePath());
 	}
 
 	/**
@@ -286,7 +327,21 @@ public class Window extends javax.swing.JFrame {
 	 * prerequisites are met
 	 */
 	private void generateClicked() {
-		// TODO: Implement reader class such that it will read the source file
+		try {
+			reader = new Reader(source);
+			reader.read();
+			gen = new Generator(reader.getAllWords(), String.valueOf(lang.getSelectedItem()), String.valueOf(genType.getSelectedItem()), isCont.isSelected());
+			gen.generate();
+			result.setText(gen.getPoem());
+		} catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(this, "The file you have selected either doesn't exist or cannot be read.", "Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this,  "You must select a file in order to continue.", "Error", JOptionPane.ERROR_MESSAGE);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(this,  "An error occurred while attempting to generate the poem.", "Error", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -296,6 +351,6 @@ public class Window extends javax.swing.JFrame {
 	 * @param newLang
 	 */
 	private void languageChanged(String newLang) {
-		// TODO:  Implement language change with syllableGetter object
+		gen.changeLanguage(newLang);
 	}
 }

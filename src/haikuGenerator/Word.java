@@ -2,8 +2,8 @@ package haikuGenerator;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * This class refers to a word and a map of all words that follow it (including
@@ -44,11 +44,9 @@ public class Word {
 	private String cleanToken(String token) {
 		String clean = token.toLowerCase(); // sets token to lower case
 		clean = clean.replace(".", "").replace(",", "") // removes unnecessary punctuation
-				.replace(":", "").replace(";", "").replace("\"", "");
-		// if last character is an apostrophe, it is removed
-		if (clean.toCharArray()[clean.length() - 1] == '\'') {
-			clean = clean.substring(0, clean.length() - 1);
-		}
+				.replace(":", "").replace(";", "").replace("\"", "")
+				.replace("!", "").replace("?", "");
+		clean = clean.replace("\\s", "");
 		return clean;
 	}
 
@@ -79,7 +77,7 @@ public class Word {
 		Word top = null;
 
 		// references to the set of words
-		HashSet<Word> set = (HashSet<Word>) possibleFollowers.keySet();
+		Set<Word> set = possibleFollowers.keySet();
 
 		/*
 		 * For every word in the set of words that are known to follow the current word,
@@ -154,7 +152,7 @@ public class Word {
 	public Word getRandomFollower() {
 
 		// Stores the possible words into a set
-		HashSet<Word> set = (HashSet<Word>) possibleFollowers.keySet();
+		Set<Word> set = possibleFollowers.keySet();
 
 		// Stores the set into an array
 		Object[] words = set.toArray();
@@ -209,9 +207,16 @@ public class Word {
 		WordSet words = new WordSet();
 		// for each word in the list of known followers, add it to the WordSet
 		for (Word follower : possibleFollowers.keySet()) {
-			words.add(follower);
+			words.put(follower, follower.toString());
 		}
 		// return the WordSet containing all words that follow this word instance
 		return words;
+	}
+	
+	public boolean hasFollower() {
+		if (possibleFollowers.keySet().size() == 0) {
+			return false;
+		}
+		return true;
 	}
 }
