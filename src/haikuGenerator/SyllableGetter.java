@@ -87,6 +87,7 @@ public class SyllableGetter {
 		}
 		
 		String[] arr = line.split("\\s");
+		arr[14] = arr[14].replace("</p>", "");
 		return Integer.parseInt(arr[14]);
 	}
 

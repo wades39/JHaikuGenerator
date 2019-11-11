@@ -1,5 +1,6 @@
 package haikuGenerator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -43,10 +44,21 @@ public class Word {
 	 */
 	private String cleanToken(String token) {
 		String clean = token.toLowerCase(); // sets token to lower case
-		clean = clean.replace(".", "").replace(",", "") // removes unnecessary punctuation
-				.replace(":", "").replace(";", "").replace("\"", "")
-				.replace("!", "").replace("?", "");
-		clean = clean.replace("\\s", "");
+		char[] cleanChars = clean.toCharArray();
+		ArrayList<Character> cl = new ArrayList<>();
+		for (char c: cleanChars) {
+			if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+				cl.add(c);
+			}
+		}
+		cleanChars = new char[cl.size()];
+		int ind = 0;
+		for (char ch: cl) {
+			cleanChars[ind] = ch;
+			ind++;
+		}
+		clean = new String(cleanChars);
+		//clean = clean.replace("\\s", "");
 		return clean;
 	}
 

@@ -73,14 +73,15 @@ public class Generator {
 
 	/**
 	 * Enacts the process of generating a poem.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	public void generate() throws IOException {
 		sBuilder = new StringBuilder();
 
-		sBuilder.append(genLine(7) + "\n");
 		sBuilder.append(genLine(5) + "\n");
-		sBuilder.append(genLine(7));
+		sBuilder.append(genLine(7) + "\n");
+		sBuilder.append(genLine(5));
 
 		poem = sBuilder.toString();
 	}
@@ -91,7 +92,7 @@ public class Generator {
 	 * 
 	 * @param syllables: the number of syllables the line should contain
 	 * @return line
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private String genLine(int syllables) throws IOException {
 		int ct = 0;
@@ -110,7 +111,12 @@ public class Generator {
 			while (!w.hasFollower()) {
 				w = allWords.getRandom();
 			}
+			w = w.getRandomFollower();
 			lastWord = w.toString();
+			ln.append(lastWord);
+			ct += syl.getSyllables(lastWord);
+		} else if (lastWord.isBlank()) {
+			lastWord = allWords.getRandom().toString();
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
 		}
@@ -206,7 +212,7 @@ public class Generator {
 				throw new IllegalArgumentException();
 			}
 		}
-		
+
 		if (!continuous) {
 			lastWord = ""; // resets last word
 		}

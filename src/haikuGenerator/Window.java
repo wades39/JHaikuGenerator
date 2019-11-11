@@ -50,7 +50,7 @@ public class Window extends javax.swing.JFrame {
 	/**
 	 * Indicates progress in generating/analyzing file
 	 */
-	private JProgressBar progress;
+	private static JProgressBar progress;
 	/**
 	 * Area which the resultant poem is written to
 	 */
@@ -103,6 +103,18 @@ public class Window extends javax.swing.JFrame {
 	 * Lists supported languages
 	 */
 	private String[] supported;
+	/**
+	 * Indicates whether or not the source file has been changed
+	 */
+	private boolean sourceChanged;
+	/**
+	 * Indicates whether or not the source has been generated from
+	 */
+	private boolean hasGenerated;
+	/**
+	 * Indicates whether or not the program is generating
+	 */
+	private boolean isGen;
 
 	public static void main(String[] args) {
 
@@ -113,19 +125,18 @@ public class Window extends javax.swing.JFrame {
 				// logFile.mkdirs();
 				logFile.createNewFile();
 			} catch (Exception e) {
-				e.printStackTrace();
 			}
 			bw = new BufferedWriter(new FileWriter(logFile));
 			bw.write("JHaikuGenerator Error Log\n" + "-------------------------\n" + "Created:  " + ZonedDateTime.now()
 					+ "\n" + "-------------------------\n");
 			bw.close();
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 
 		// creates a new gui
-		new Window();
+		Window wind = new Window();
 
+		wind.contains(0, 0);
 		// TODO: Implement code to write to the error log
 
 	}
@@ -136,6 +147,12 @@ public class Window extends javax.swing.JFrame {
 	public Window() {
 		initWindow();
 		this.setVisible(true);
+		sourceChanged = true;
+		hasGenerated = false;
+		if (hasGenerated) {
+			// do nothing
+		}
+		source = null;
 	}
 
 	/**
@@ -147,21 +164,18 @@ public class Window extends javax.swing.JFrame {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		} catch (InstantiationException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
 		} catch (UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
 		}
 
 		// Basic GUI setup (title, closing action, etc.)
 		cp = this.getContentPane();
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setTitle("JHaikuGenerator");
 		this.setLayout(null);
 		this.setResizable(false);
+		// this.setLocationRelativeTo(null);
 		;
 		// TODO: Design an icon for the program
 		// TODO: Implement code to establish the icon of the program
@@ -230,10 +244,11 @@ public class Window extends javax.swing.JFrame {
 		// the approximate progress of the generation of their haiku
 		progress = new JProgressBar();
 		progress.setMinimum(0);
-		progress.setMaximum(Integer.MAX_VALUE);
+		progress.setMaximum(500);
 		progress.setValue(0);
-		progress.setForeground(Color.blue);
-		progress.setBackground(Color.lightGray);
+		// progress.setForeground(Color.blue);
+		// progress.setBackground(Color.lightGray);
+		progress.setStringPainted(true);
 		progress.setBounds(x, y, widest - 30, 15);
 		y += 20;
 
@@ -315,11 +330,19 @@ public class Window extends javax.swing.JFrame {
 	 * clicked
 	 */
 	private void browseClicked() {
+		File oldSource = source;
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fileChooser.showOpenDialog(this);
 		source = fileChooser.getSelectedFile();
 		fileLoc.setText(source.getAbsolutePath());
+
+		if (oldSource != source) {
+			sourceChanged = true;
+			hasGenerated = false;
+		} else {
+			sourceChanged = false;
+		}
 	}
 
 	/**
@@ -328,20 +351,76 @@ public class Window extends javax.swing.JFrame {
 	 */
 	private void generateClicked() {
 		try {
-			reader = new Reader(source);
-			reader.read();
-			gen = new Generator(reader.getAllWords(), String.valueOf(lang.getSelectedItem()), String.valueOf(genType.getSelectedItem()), isCont.isSelected());
-			gen.generate();
-			result.setText(gen.getPoem());
-		} catch (FileNotFoundException e) {
-			JOptionPane.showMessageDialog(this, "The file you have selected either doesn't exist or cannot be read.", "Error", JOptionPane.ERROR_MESSAGE);
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this,  "You must select a file in order to continue.", "Error", JOptionPane.ERROR_MESSAGE);
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(this,  "An error occurred while attempting to generate the poem.", "Error", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					isGen = true;
+					progress.setValue(0);
+					progress.setMaximum(100);
+
+					if (sourceChanged) {
+						try {
+							reader = new Reader(source);
+						} catch (IOException e) {
+							showError();
+						}
+
+						try {
+							reader.read();
+						} catch (IOException e) {
+							showError();
+						}
+						progress.setMaximum(progress.getMaximum() + reader.getAllWords().size());
+
+						new Thread(new Runnable() {
+
+							@Override
+							public void run() {
+								while (isGen) {
+									progress.setValue(reader.pos);
+									System.out.println(progress.getValue());
+								}
+							}
+
+						}).start();
+
+						try {
+							reader.popFollowers();
+						} catch (FileNotFoundException e) {
+							showError();
+						}
+					}
+					isGen = false;
+
+					gen = new Generator(reader.getAllWords(), String.valueOf(lang.getSelectedItem()),
+							String.valueOf(genType.getSelectedItem()), isCont.isSelected());
+					try {
+						gen.generate();
+					} catch (IOException e) {
+						showError();
+					}
+
+					progress.setValue(progress.getValue() + 100);
+
+					sourceChanged = false;
+					hasGenerated = true;
+
+					result.setText(gen.getPoem());
+
+				}
+
+			}).start();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.", "Error",
+					JOptionPane.ERROR_MESSAGE);
 		}
+
+	}
+	
+	private void showError() {
+		JOptionPane.showMessageDialog(this, "An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.", "Error",
+				JOptionPane.ERROR_MESSAGE);
 	}
 
 	/**

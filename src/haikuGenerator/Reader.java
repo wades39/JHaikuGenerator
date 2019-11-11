@@ -2,6 +2,7 @@ package haikuGenerator;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
@@ -41,6 +42,8 @@ public class Reader {
 	 */
 	private BufferedWriter bw;
 
+	public int pos;
+
 	/**
 	 * Constructs the reader object
 	 * 
@@ -56,45 +59,60 @@ public class Reader {
 		temporary.deleteOnExit();
 		bw = new BufferedWriter(new FileWriter(temporary));
 		this.source.canRead();
+		pos = 0;
 	}
 
 	/**
-	 * Reads the source file, creating the necessary data from the text to allow
-	 * generation
+	 * Reads the source file and populates a temporary file with the cleaned tokens.
 	 * 
 	 * @throws IOException
 	 */
 	public void read() throws IOException {
-		// places all distinct words from the text into a wordSet
+		// read all of the words in the source file and place them into a temporary file
 		while (scan.hasNext()) {
-			String s = scan.next();
-			if (s.equals("-")) {
-				continue;
+			String wor = scan.next();
+			if (!wor.equals("-")) {
+				Word w = new Word(wor); // creates new word object and cleans its text representation
+				if (temporary.length() == 0L) {
+					bw.append(" ");
+				}
+				bw.append(w.toString() + " ");
+				allWords.put(w, w.toString());
 			}
-			Word w = new Word(s);
-			allWords.put(w, w.toString());
-			bw.append(w.toString() + " ");
 		}
+
 		bw.close();
-
 		scan.close();
+
+	}
+
+	/**
+	 * Populates the followers for each word
+	 * 
+	 * @throws FileNotFoundException
+	 */
+	public void popFollowers() throws FileNotFoundException {
 		scan = new Scanner(temporary);
-
+		pos = 0;
+		
+		// Apply followers, frequency
 		for (Word w : allWords.keySet()) {
-			scan.useDelimiter(w.toString() + " ");
-			scan.next(); // skips to first instance of the word
-
+			scan.useDelimiter(" " + w.toString() + " ");
+			scan.next(); // get to first occurrence of the word
 			while (scan.hasNext()) {
 				String line = scan.next();
-				String[] arr = line.split("\\s");
-				System.out.println(arr[0]);
-				if (arr[0].isBlank() || arr[0].isEmpty() || arr[0] == null) {
-					continue;
+				Scanner sc = new Scanner(line);
+				if (sc.hasNext()) {
+					line = sc.next();
+				} else {
+					break; // no next word
 				}
-				w.addFollower(allWords.get(arr[0]));
+				sc.close();
+				w.addFollower(allWords.get(line));
 			}
 			scan.close();
 			scan = new Scanner(temporary);
+			pos++;			
 		}
 	}
 
