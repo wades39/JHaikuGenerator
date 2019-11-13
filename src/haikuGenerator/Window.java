@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -21,10 +23,12 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 /**
  * The window object class describes the GUI for the JHaikuGenerator program.
@@ -54,7 +58,7 @@ public class Window extends javax.swing.JFrame {
 	/**
 	 * Area which the resultant poem is written to
 	 */
-	private JTextArea result;
+	private JTextPane result;
 	/**
 	 * Area where the file path of the source file is displayed
 	 */
@@ -114,7 +118,7 @@ public class Window extends javax.swing.JFrame {
 	/**
 	 * Indicates whether or not the program is generating
 	 */
-	private boolean isGen;
+	private boolean isGen, isGen2;
 
 	public static void main(String[] args) {
 
@@ -175,10 +179,9 @@ public class Window extends javax.swing.JFrame {
 		this.setTitle("JHaikuGenerator");
 		this.setLayout(null);
 		this.setResizable(false);
-		// this.setLocationRelativeTo(null);
-		;
-		// TODO: Design an icon for the program
-		// TODO: Implement code to establish the icon of the program
+		
+		this.setIconImage(new ImageIcon(getClass().getResource("JHGIcon.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
+		
 
 		// Used to keep track of the positioning of elements of the GUI
 		int x = 15, y = 15, widest, deepest;
@@ -254,12 +257,16 @@ public class Window extends javax.swing.JFrame {
 
 		// Instantiates and assigns a text box in which the generated haiku
 		// will be displayed to the user
-		result = new JTextArea();
+		result = new JTextPane();
 		result.setBorder(BorderFactory.createLineBorder(Color.gray));
 		result.setEditable(false);
 		result.setForeground(Color.gray);
 		result.setFont(new Font("Arial", 12, 12));
 		result.setText(" Generated poem will be displayed here...");
+		StyledDocument doc = result.getStyledDocument();
+		SimpleAttributeSet center = new SimpleAttributeSet();
+		StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+		doc.setParagraphAttributes(0, doc.getLength(), center, false);
 		result.setBounds(x, y, widest - 30, 75);
 		deepest = y + 90;
 
@@ -357,7 +364,7 @@ public class Window extends javax.swing.JFrame {
 				public void run() {
 					isGen = true;
 					progress.setValue(0);
-					progress.setMaximum(100);
+					progress.setMaximum(17);
 
 					if (sourceChanged) {
 						try {
@@ -391,18 +398,33 @@ public class Window extends javax.swing.JFrame {
 							showError();
 						}
 					}
-					isGen = false;
-
+					
 					gen = new Generator(reader.getAllWords(), String.valueOf(lang.getSelectedItem()),
 							String.valueOf(genType.getSelectedItem()), isCont.isSelected());
+					
+					int oldVal = progress.getValue();
+					
+					isGen2 = true;
+					isGen = false;
+					
+					new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+							while (isGen2) {
+								progress.setValue(oldVal + gen.generatedSyls);
+							}
+						}
+						
+					}).start();
+					
 					try {
 						gen.generate();
 					} catch (IOException e) {
 						showError();
 					}
-
-					progress.setValue(progress.getValue() + 100);
-
+					
+					isGen2 = false;
 					sourceChanged = false;
 					hasGenerated = true;
 
@@ -412,15 +434,17 @@ public class Window extends javax.swing.JFrame {
 
 			}).start();
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.", "Error",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this,
+					"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
+					"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
-	
+
 	private void showError() {
-		JOptionPane.showMessageDialog(this, "An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.", "Error",
-				JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(this,
+				"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
+				"Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/**

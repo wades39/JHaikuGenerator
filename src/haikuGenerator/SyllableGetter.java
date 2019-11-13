@@ -86,6 +86,8 @@ public class SyllableGetter {
 			line = in.readLine();
 		}
 		
+		con.disconnect();
+		
 		String[] arr = line.split("\\s");
 		arr[14] = arr[14].replace("</p>", "");
 		return Integer.parseInt(arr[14]);
@@ -98,6 +100,7 @@ public class SyllableGetter {
 	 * @return syllableCount
 	 */
 	private int getSpanishSyllables(String token) {
+		// TODO:  Implement either algorithm or website resource to fine syllables
 		return 0;
 	}
 
@@ -108,6 +111,7 @@ public class SyllableGetter {
 	 * @return syllableCount
 	 */
 	private int getFrenchSyllables(String token) {
+		// TODO:  Implement either algorithm or website resource to find syllables
 		return 0;
 	}
 

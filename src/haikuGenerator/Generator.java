@@ -52,6 +52,10 @@ public class Generator {
 	 * References the language the generator will use
 	 */
 	private String language;
+	/**
+	 * Indicates how many syllables have been generated so far
+	 */
+	public int generatedSyls;
 
 	/**
 	 * Constructs the Generator object with the necessary variables.
@@ -69,6 +73,7 @@ public class Generator {
 		gent = type;
 		syl = new SyllableGetter(language);
 		lastWord = "";
+		generatedSyls = 0;
 	}
 
 	/**
@@ -106,6 +111,7 @@ public class Generator {
 			lastWord = w.toString();
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
+			generatedSyls += syl.getSyllables(lastWord);
 		} else if (continuous && !lastWord.isBlank()) {
 			Word w = allWords.get(lastWord);
 			while (!w.hasFollower()) {
@@ -115,10 +121,12 @@ public class Generator {
 			lastWord = w.toString();
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
+			generatedSyls += syl.getSyllables(lastWord);
 		} else if (lastWord.isBlank()) {
 			lastWord = allWords.getRandom().toString();
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
+			generatedSyls += syl.getSyllables(lastWord);
 		}
 
 		// until ct = syllables, try to pick preferred type, otherwise pick random
@@ -143,6 +151,7 @@ public class Generator {
 					}
 				}
 				ct += syl.getSyllables(word);
+				generatedSyls += syl.getSyllables(word);
 				lastWord = word;
 				break;
 			case "Median":
@@ -164,6 +173,7 @@ public class Generator {
 					}
 				}
 				ct += syl.getSyllables(word);
+				generatedSyls += syl.getSyllables(word);
 				lastWord = word;
 				break;
 			case "Least Frequent":
@@ -185,6 +195,7 @@ public class Generator {
 					}
 				}
 				ct += syl.getSyllables(word);
+				generatedSyls += syl.getSyllables(word);
 				lastWord = word;
 				break;
 			case "Random":
@@ -206,6 +217,7 @@ public class Generator {
 					}
 				}
 				ct += syl.getSyllables(word);
+				generatedSyls += syl.getSyllables(word);
 				lastWord = word;
 				break;
 			default:

@@ -47,7 +47,7 @@ public class Word {
 		char[] cleanChars = clean.toCharArray();
 		ArrayList<Character> cl = new ArrayList<>();
 		for (char c: cleanChars) {
-			if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+			if (Character.isAlphabetic(c) || Character.isDigit(c) || c == '\'') {
 				cl.add(c);
 			}
 		}
