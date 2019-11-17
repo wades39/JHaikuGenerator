@@ -1,6 +1,9 @@
 # JHaikuGenerator
 A Java-based program which generates Haiku-style poems using words from an uploaded file.
 
+# KNOWN ISSUES:
+The build of the program (regardless of the distribution format) throws an exception when starting up, resulting in the program crashing before the user can interact with it in any way.
+
 ## SYSTEM REQUIREMENTS
 To use this software, your computer will need the latest version of Java and internet connectivity.
 
