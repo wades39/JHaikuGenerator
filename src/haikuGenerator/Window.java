@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -12,6 +11,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 
 import javax.swing.BorderFactory;
@@ -121,7 +125,6 @@ public class Window extends javax.swing.JFrame {
 	private boolean isGen, isGen2;
 
 	public static void main(String[] args) {
-
 		// checks to see if error log file exists, and if not, it is created
 		logFile = new File("./logs/errorLog.txt");
 		try {
@@ -141,8 +144,6 @@ public class Window extends javax.swing.JFrame {
 		Window wind = new Window();
 
 		wind.contains(0, 0);
-		// TODO: Implement code to write to the error log
-
 	}
 
 	/**
@@ -179,9 +180,8 @@ public class Window extends javax.swing.JFrame {
 		this.setTitle("JHaikuGenerator");
 		this.setLayout(null);
 		this.setResizable(false);
-		
-		this.setIconImage(new ImageIcon(getClass().getResource("JHGIcon.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
-		
+
+		this.setIconImage(new ImageIcon(getClass().getResource("JHGIcon.png")).getImage());
 
 		// Used to keep track of the positioning of elements of the GUI
 		int x = 15, y = 15, widest, deepest;
@@ -370,13 +370,19 @@ public class Window extends javax.swing.JFrame {
 						try {
 							reader = new Reader(source);
 						} catch (IOException e) {
-							showError();
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							e.printStackTrace(pw);
+							showError(sw.toString());
 						}
 
 						try {
 							reader.read();
 						} catch (IOException e) {
-							showError();
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							e.printStackTrace(pw);
+							showError(sw.toString());
 						}
 						progress.setMaximum(progress.getMaximum() + reader.getAllWords().size());
 
@@ -395,18 +401,21 @@ public class Window extends javax.swing.JFrame {
 						try {
 							reader.popFollowers();
 						} catch (FileNotFoundException e) {
-							showError();
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							e.printStackTrace(pw);
+							showError(sw.toString());
 						}
 					}
-					
+
 					gen = new Generator(reader.getAllWords(), String.valueOf(lang.getSelectedItem()),
 							String.valueOf(genType.getSelectedItem()), isCont.isSelected());
-					
+
 					int oldVal = progress.getValue();
-					
+
 					isGen2 = true;
 					isGen = false;
-					
+
 					new Thread(new Runnable() {
 
 						@Override
@@ -415,15 +424,18 @@ public class Window extends javax.swing.JFrame {
 								progress.setValue(oldVal + gen.generatedSyls);
 							}
 						}
-						
+
 					}).start();
-					
+
 					try {
 						gen.generate();
 					} catch (IOException e) {
-						showError();
+						StringWriter sw = new StringWriter();
+						PrintWriter pw = new PrintWriter(sw);
+						e.printStackTrace(pw);
+						showError(sw.toString());
 					}
-					
+
 					isGen2 = false;
 					sourceChanged = false;
 					hasGenerated = true;
@@ -434,6 +446,7 @@ public class Window extends javax.swing.JFrame {
 
 			}).start();
 		} catch (Exception e) {
+			
 			JOptionPane.showMessageDialog(this,
 					"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
 					"Error", JOptionPane.ERROR_MESSAGE);
@@ -441,7 +454,15 @@ public class Window extends javax.swing.JFrame {
 
 	}
 
-	private void showError() {
+	private void showError(String e) {
+		try {
+			Files.write(Paths.get(logFile.toURI()), (e + "-------------------------\n").getBytes(), StandardOpenOption.APPEND);
+		} catch (IOException e1) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e1.printStackTrace(pw);
+			showError(sw.toString());
+		}
 		JOptionPane.showMessageDialog(this,
 				"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
 				"Error", JOptionPane.ERROR_MESSAGE);
