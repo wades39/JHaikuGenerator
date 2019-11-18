@@ -6,10 +6,7 @@ Java SE Runtime 1.8.0-- or higher,
 Internet connectivity
 
 ## DOWNLOADING THE SOFTWARE
-To download and use this software, select the "dist" folder of the repository and select the distribution that you wish to use.
-Current versions:
-  -.exe - 1.1.7, 
-  -.jar - 1.1.7
+To download JHaikuGenerator, you can either select the distribution from the "dist" directory of the repo, or go [here](https://github.com/wades39/JHaikuGenerator/releases) and select the version that works best for you.
 
 ## HOW TO USE
 To use this software to generate Haiku-style poems, the user will need to select a text file for the program to use. From there, select the language the text file is written in, a style of generation, and whether or not each line should be generated from where the last one ended. 
