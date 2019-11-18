@@ -1,14 +1,12 @@
 package haikuGenerator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 /**
- * This class refers to a word and a map of all words that follow it (including
- * their frequency in the text).
+ * This object represents a word and all of its given followers
  * 
  * @author Kyler McMullin
  *
@@ -16,219 +14,136 @@ import java.util.Set;
 public class Word {
 
 	/**
-	 * The word the object is referencing
+	 * The actual string version of the word object
 	 */
 	private String term;
 
 	/**
-	 * Represents a set of all words that can follow the word, along with how
-	 * frequently they occur
+	 * Represents a collection of all of the words that follow this word object
 	 */
-	private HashMap<Word, Integer> possibleFollowers;
+	private HashMap<Word, Integer> followers;
 
 	/**
-	 * Represents a word from the text, accounting for words that follow it.
+	 * Initializes the word object
 	 * 
 	 * @param term
 	 */
 	public Word(String term) {
 		this.term = cleanToken(term);
-		possibleFollowers = new HashMap<>();
+		followers = new HashMap<>();
 	}
 
 	/**
-	 * Returns a cleaned token. Removes unnecessary punctuation, sets to lower case.
-	 * 
-	 * @param token
-	 * @return cleanToken
-	 */
-	private String cleanToken(String token) {
-		String clean = token.toLowerCase(); // sets token to lower case
-		char[] cleanChars = clean.toCharArray();
-		ArrayList<Character> cl = new ArrayList<>();
-		for (char c: cleanChars) {
-			if (Character.isAlphabetic(c) || Character.isDigit(c) || c == '\'') {
-				cl.add(c);
-			}
-		}
-		cleanChars = new char[cl.size()];
-		int ind = 0;
-		for (char ch: cl) {
-			cleanChars[ind] = ch;
-			ind++;
-		}
-		clean = new String(cleanChars);
-		//clean = clean.replace("\\s", "");
-		return clean;
-	}
-
-	/**
-	 * Returns the string value of the word object
-	 * 
-	 * @return wordString
+	 * Returns the term which the Word object represents
 	 */
 	public String toString() {
 		return term;
 	}
 
 	/**
-	 * Returns the word that has the most occurrences after this word instance.
+	 * Cleans a given token such that it will be in a usable format
 	 * 
-	 * @return mostFrequentFollowingWord
+	 * @param token
+	 * @return cleanedToken
 	 */
-	public Word getTopFollower() {
-		// Every word in the set will have a higher value than this
-		int highestFreq = Integer.MIN_VALUE;
-
-		/*
-		 * top will contain the word which occurs most frequently following this word
-		 * (i.e. if the text is "the big red door is afraid of the dog, because the dog
-		 * ate a small door", and the current word is "the," the top following word
-		 * would be "dog.")
-		 */
-		Word top = null;
-
-		// references to the set of words
-		Set<Word> set = possibleFollowers.keySet();
-
-		/*
-		 * For every word in the set of words that are known to follow the current word,
-		 * if it occurs more frequently than any other, it is the top word
-		 * 
-		 * In reference to the example given above the word variable, there are two
-		 * words that follow "the": "big" and "dog". "big" occurs once, "dog" occurs
-		 * twice, making "dog" the most frequent word.
-		 */
-		for (Word w : set) {
-			if (possibleFollowers.get(w) > highestFreq) {
-				highestFreq = possibleFollowers.get(w);
-				top = w;
+	private String cleanToken(String token) {
+		token = token.toLowerCase();
+		char[] chars = token.toCharArray();
+		StringBuilder cleanedToken = new StringBuilder();
+		for (char c : chars) {
+			if ((Character.isAlphabetic(c) || Character.isDigit(c) || c == '\'')) {
+				cleanedToken.append(c);
 			}
 		}
-
-		return top;
+		return cleanedToken.toString();
 	}
 
 	/**
-	 * Returns the word that follows this word instance at the median frequency
+	 * Adds the provided word to this word's set of known followers. If it is
+	 * already in the set, it's frequency value is incremented.
 	 * 
-	 * @return medianFollower
+	 * @param followingWord
 	 */
-	public Word getMedianFollower() {
-
-		// will hold the frequency values
-		int[] frequencies = new int[possibleFollowers.values().size() - 1];
-
-		// code will not work if there is nothing in the array
-		if (frequencies.length == 0) {
-			throw new IllegalArgumentException();
-		}
-
-		// places the frequency values into the array
-		int i = 0;
-		for (int freq : possibleFollowers.values()) {
-			frequencies[i] = freq;
-			i++;
-		}
-
-		// sorts frequency values from smallest to largest
-		Arrays.sort(frequencies);
-
-		int median = Integer.MIN_VALUE;
-
-		// if frequencies contains an odd number of values, return middle
-		if (frequencies.length % 2 == 1) {
-			median = frequencies[frequencies.length / 2]; // length/2 = middle index
+	public void addFollower(Word followingWord) {
+		if (followers.containsKey(followingWord)) {
+			followers.put(followingWord, followers.get(followingWord) + 1);
 		} else {
-			median = frequencies[frequencies.length / 2]; // higher bound middle
-			// if length = 4, then it is 2 however, index of 2 is one above the
-			// true middle (the best option)
+			followers.put(followingWord, 1);
 		}
-
-		// return word that is mapped to median frequency
-		for (Word w : possibleFollowers.keySet()) {
-			if (possibleFollowers.get(w) == median) {
-				return w;
-			}
-		}
-
-		// if there is no median value, throw NSEE
-		throw new NoSuchElementException();
 	}
 
 	/**
-	 * Returns a random word that follows this word instance.
+	 * Returns whether or not this word has a follower.
 	 * 
-	 * @return randomFollowingWord
+	 * @return
+	 */
+	public boolean hasFollower() {
+		if (followers.size() > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns a random follower.
+	 * 
+	 * @return randFollower
 	 */
 	public Word getRandomFollower() {
-
-		// Stores the possible words into a set
-		Set<Word> set = possibleFollowers.keySet();
-
-		// Stores the set into an array
-		Object[] words = set.toArray();
-
-		// Generates a random index (maximum size is (words.length - 1))
-		int index = (int) (Math.random() * (double) words.length);
-
-		return (Word) words[index];
+		return (Word) followers.keySet().toArray()[(int) (Math.random() * followers.size())];
 	}
 
 	/**
-	 * Returns the word that follows this word instance the least frequently.
+	 * Returns the top follower.
+	 * 
+	 * @return topFollower
 	 */
-	public Word getBottomFollower() {
-		// all possible values of i are smaller than index
-		int index = Integer.MAX_VALUE;
-		// finds the smallest value of i and assigns it to index
-		for (int i : possibleFollowers.values()) {
-			if (i < index) {
-				index = i;
+	public Word getTopFollower() {
+		Word top = null;
+		int highestFreq = 0;
+		for (Word s : followers.keySet()) {
+			if (followers.get(s) > highestFreq) {
+				highestFreq = followers.get(s);
+				top = s;
 			}
 		}
-		// returns the word in the index that has the lowest frequency
-		return (Word) possibleFollowers.keySet().toArray()[index];
-	}
-
-	/**
-	 * Adds a follower to this word instance. Should the follower already exist, its
-	 * frequency is incremented.
-	 * 
-	 * @param term
-	 */
-	public void addFollower(Word term) {
-		// if the given word is a known follower, increment its frequency by 1
-		if (possibleFollowers.containsKey(term)) {
-			possibleFollowers.put(term, possibleFollowers.get(term) + 1);
-		}
-		// otherwise, add the given word to the list of known followers and set its
-		// frequency to 1
-		else {
-			possibleFollowers.put(term, 1);
-		}
-	}
-
-	/**
-	 * Returns a WordSet containing all words that follow this word instance.
-	 * 
-	 * @return followerSet
-	 */
-	public WordSet getFollowers() {
-		// create new WordSet
-		WordSet words = new WordSet();
-		// for each word in the list of known followers, add it to the WordSet
-		for (Word follower : possibleFollowers.keySet()) {
-			words.put(follower, follower.toString());
-		}
-		// return the WordSet containing all words that follow this word instance
-		return words;
+		return top;
 	}
 	
-	public boolean hasFollower() {
-		if (possibleFollowers.keySet().size() == 0) {
-			return false;
+	/**
+	 * Returns the bottom follower
+	 * 
+	 * @return botFollower
+	 */
+	public Word getBotFollower() {
+		Word bot = null;
+		int highestFreq = Integer.MAX_VALUE;
+		for (Word s : followers.keySet()) {
+			if (followers.get(s) < highestFreq) {
+				highestFreq = followers.get(s);
+				bot = s;
+			}
 		}
-		return true;
+		return bot;
+	}
+
+	/**
+	 * Returns the median follower.
+	 * 
+	 * @return midFollower
+	 */
+	public Word getMidFollower() {
+		ArrayList<Integer> freqs = new ArrayList<>();
+		for (int i : followers.values()) {
+			freqs.add(i);
+		}
+		Collections.sort(freqs);
+		int median = freqs.get(freqs.size() / 2);
+		for (Word s : followers.keySet()) {
+			if (followers.get(s) == median) {
+				return s;
+			}
+		}
+		throw new NoSuchElementException();
 	}
 }

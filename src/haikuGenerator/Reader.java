@@ -77,7 +77,9 @@ public class Reader {
 					bw.append(" ");
 				}
 				bw.append(w.toString() + " ");
-				allWords.put(w, w.toString());
+				if (!allWords.containsValue(w.toString())) {
+					allWords.put(w, w.toString());
+				}
 			}
 		}
 
@@ -94,7 +96,7 @@ public class Reader {
 	public void popFollowers() throws FileNotFoundException {
 		scan = new Scanner(temporary);
 		pos = 0;
-		
+
 		// Apply followers, frequency
 		for (Word w : allWords.keySet()) {
 			scan.useDelimiter(" " + w.toString() + " ");
@@ -112,7 +114,7 @@ public class Reader {
 			}
 			scan.close();
 			scan = new Scanner(temporary);
-			pos++;			
+			pos++;
 		}
 	}
 

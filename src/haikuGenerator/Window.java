@@ -357,22 +357,29 @@ public class Window extends javax.swing.JFrame {
 	 * prerequisites are met
 	 */
 	private void generateClicked() {
+		if (source == null) {
+			JOptionPane.showMessageDialog(getContentPane(), "You must select a file before you can continue!",
+					"No File Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		try {
 			new Thread(new Runnable() {
 
 				@Override
 				public void run() {
 					isGen = true;
+					isGen2 = false;
 					progress.setValue(0);
 					progress.setMaximum(17);
 
 					if (sourceChanged) {
+
 						try {
 							reader = new Reader(source);
-						} catch (IOException e) {
+						} catch (IOException e1) {
 							StringWriter sw = new StringWriter();
 							PrintWriter pw = new PrintWriter(sw);
-							e.printStackTrace(pw);
+							e1.printStackTrace(pw);
 							showError(sw.toString());
 						}
 
@@ -392,7 +399,6 @@ public class Window extends javax.swing.JFrame {
 							public void run() {
 								while (isGen) {
 									progress.setValue(reader.pos);
-									System.out.println(progress.getValue());
 								}
 							}
 
@@ -415,17 +421,36 @@ public class Window extends javax.swing.JFrame {
 
 					isGen2 = true;
 					isGen = false;
+					sourceChanged = false;
+					hasGenerated = true;
 
 					new Thread(new Runnable() {
 
 						@Override
 						public void run() {
+
 							while (isGen2) {
 								progress.setValue(oldVal + gen.generatedSyls);
 							}
 						}
 
 					}).start();
+
+					// generation needs to timeout after 25 secs
+					Thread timeout = new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(25000);
+								generateClicked();
+							} catch (InterruptedException e) {
+							}
+						}
+
+					});
+
+					timeout.start();
 
 					try {
 						gen.generate();
@@ -437,35 +462,43 @@ public class Window extends javax.swing.JFrame {
 					}
 
 					isGen2 = false;
-					sourceChanged = false;
-					hasGenerated = true;
 
-					result.setText(gen.getPoem());
+					timeout.interrupt();
+					finish();
 
 				}
 
 			}).start();
 		} catch (Exception e) {
-			
-			JOptionPane.showMessageDialog(this,
+
+			JOptionPane.showMessageDialog(getContentPane(),
 					"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
 					"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
 
+	private void finish() {
+		progress.setValue(progress.getMaximum()); // the program has a tendency to fail to appropriately
+		// measure its progress
+
+		result.setText(gen.getPoem());
+	}
+
 	private void showError(String e) {
 		try {
-			Files.write(Paths.get(logFile.toURI()), (e + "-------------------------\n").getBytes(), StandardOpenOption.APPEND);
+			JOptionPane.showMessageDialog(getContentPane(),
+					"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+			Files.write(Paths.get(logFile.toURI()), (e + "-------------------------\n").getBytes(),
+					StandardOpenOption.APPEND);
 		} catch (IOException e1) {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			e1.printStackTrace(pw);
 			showError(sw.toString());
 		}
-		JOptionPane.showMessageDialog(this,
-				"An error occurred while attempting to generate the poem. Check your internet connection and ensure that the file you have provided exists.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+
 	}
 
 	/**
