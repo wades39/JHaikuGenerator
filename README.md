@@ -7,13 +7,16 @@ To use this software, your computer will need the latest version of Java and int
 ## DOWNLOADING THE SOFTWARE
 To download and use this software, select the "dist" folder of the repository and select the distribution that you wish to use.
 Current versions:
-  .exe - 1.0.5
-  .jar - 1.0.5
+  .exe - 1.1.5
+  .jar - 1.1.5
 
 ## HOW TO USE
 To use this software to generate Haiku-style poems, the user will need to select a text file for the program to use. From there, select the language the text file is written in, a style of generation, and whether or not each line should be generated from where the last one ended. 
 
 ## VERSION HISTORY
+### Version 1.1.5
+Generation is now more efficient. Should the generation thread be working for an abnormally long time, it will time out and will restart. 
+
 ### Version 1.0.5
 Implemented an error logger, fixed issues with executables throwing JNI errors upon starting. The program should be compatible with publically available JREs (1.8.0--).
 
@@ -29,3 +32,6 @@ As of Nov. 9, 2019, the program's code has been implemented in such a way that i
 
 ### Version:  0.6.5
 As of Nov. 6, 2019, the program has most of the objects and code which it needs to function. However, that code has not been implemented such that it would function.
+
+## ABOUT DISTRIBUTIONS
+The .exe distribution file is the same as the .jar, wrapped through launch4j. 
