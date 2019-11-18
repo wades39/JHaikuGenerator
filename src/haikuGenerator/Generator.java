@@ -103,7 +103,7 @@ public class Generator {
 		int ct = 0;
 		StringBuilder ln = new StringBuilder();
 
-		if (continuous && lastWord.isBlank()) {
+		if (continuous && lastWord.chars().allMatch(Character::isWhitespace)) {
 			Word w = allWords.getRandom();
 			while (!w.hasFollower()) {
 				w = allWords.getRandom();
@@ -112,7 +112,7 @@ public class Generator {
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
 			generatedSyls += syl.getSyllables(lastWord);
-		} else if (continuous && !lastWord.isBlank()) {
+		} else if (continuous && !(lastWord.chars().allMatch(Character::isWhitespace))) {
 			Word w = allWords.get(lastWord);
 			while (!w.hasFollower()) {
 				w = allWords.getRandom();
@@ -122,7 +122,7 @@ public class Generator {
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
 			generatedSyls += syl.getSyllables(lastWord);
-		} else if (lastWord.isBlank()) {
+		} else if (lastWord.chars().allMatch(Character::isWhitespace)) {
 			lastWord = allWords.getRandom().toString();
 			ln.append(lastWord);
 			ct += syl.getSyllables(lastWord);
