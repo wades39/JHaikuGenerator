@@ -2,7 +2,8 @@
 A Java-based program which generates Haiku-style poems using words from an uploaded file.
 
 ## SYSTEM REQUIREMENTS
-To use this software, your computer will need the latest version of Java and internet connectivity.
+Java SE Runtime 1.8.0-- or higher
+Internet connectivity
 
 ## DOWNLOADING THE SOFTWARE
 To download and use this software, select the "dist" folder of the repository and select the distribution that you wish to use.
