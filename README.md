@@ -12,6 +12,9 @@ To download JHaikuGenerator, you can either select the distribution from the "di
 To use this software to generate Haiku-style poems, the user will need to select a text file for the program to use. From there, select the language the text file is written in, a style of generation, and whether or not each line should be generated from where the last one ended. 
 
 ## VERSION HISTORY
+## Version 1.1.8
+Fixed a coding error that could result in the user receiving an infinite error message loop.
+
 ### Version 1.1.7
 The program was utilizing a Java 11 method, though it is compiled as a Java 8 program. All references to that method have been changed to one that is Java 8 compatible.
 
@@ -36,3 +39,4 @@ As of Nov. 6, 2019, the program has most of the objects and code which it needs 
 
 ## ABOUT DISTRIBUTIONS
 The .exe distribution file is the same as the .jar, wrapped through launch4j. 
+None of the distributions are signed, which means that antivirus software may be falsely triggered.
