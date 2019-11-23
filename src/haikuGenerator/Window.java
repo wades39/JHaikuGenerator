@@ -496,7 +496,12 @@ public class Window extends javax.swing.JFrame {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			e1.printStackTrace(pw);
-			showError(sw.toString());
+			try {
+				Files.write(Paths.get(logFile.toURI()), (e1 + "-------------------------\n").getBytes(),
+						StandardOpenOption.APPEND);
+			} catch (Exception e2) {
+				// do nothing
+			}
 		}
 
 	}
